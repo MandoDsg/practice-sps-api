@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="bdf0dcaa-2bdd-4285-8d54-be4d635538fd" >
+		<db:my-sql-connection host="mudb.learn.mulesoft.com" port="3306" user="mule" password="mule" database="training" />
+	</db:config>
+	<flow name="practice-sps-apiFlow_GET" doc:id="8f5b83ba-c617-4a93-a1d8-524d51e8063d" >
+		<http:listener doc:name="Listener" doc:id="7e41068b-e993-466f-b517-99dbbcb94fce" config-ref="HTTP_Listener_config" path="/api/v1/sps/customers" allowedMethods="GET"/>
+		<db:select doc:name="Select" doc:id="e0fc3cba-ebd6-4a5e-803a-3af5cd8717b6" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM customers;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="928d29ea-b1d0-4b78-9df2-275a3bbbc651" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3623d5c7-0bcf-414c-9bde-eba9d3a3065e" message='#[output application/java&#10;---&#10;"Username: " ++ Mule::p("secure::example.username")&#10;++ " - " ++&#10;"Password: " ++ Mule::p("secure::example.password")]'/>
+	</flow>
+	<flow name="practice-sps-apiFlow_GET_Company" doc:id="2b8a3cf7-3153-4f29-981d-527464802f26" >
+		<http:listener doc:name="Listener" doc:id="f0d6acc7-0aee-48c4-a2bb-0135c04fbc7e" config-ref="HTTP_Listener_config" path="/api/v1/sps/customers/{Company}" allowedMethods="GET" />
+		<db:select doc:name="Select" doc:id="bcdcb369-b804-4b86-bf6d-a608eef3bdf8" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT *
+FROM customers
+WHERE Company = :Company]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'Company' : attributes.uriParams.Company}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="9fba68ad-f793-4481-89bc-81a26a462362" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="02877ff2-8eb6-46e6-9f7d-215df23f2903" message='#[output application/java&#10;---&#10;"Username: " ++ Mule::p("secure::example.username")&#10;++ " - " ++&#10;"Password: " ++ Mule::p("secure::example.password")]' />
+	</flow>
+</mule>
